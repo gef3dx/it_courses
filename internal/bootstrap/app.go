@@ -8,8 +8,20 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	swagger "github.com/gofiber/swagger/v2"
 
+	"github.com/gef3dx/it_courses/internal/article"
+	"github.com/gef3dx/it_courses/internal/auth"
+	"github.com/gef3dx/it_courses/internal/cache"
 	"github.com/gef3dx/it_courses/internal/config"
+	"github.com/gef3dx/it_courses/internal/course"
 	"github.com/gef3dx/it_courses/internal/database/postgres"
+	"github.com/gef3dx/it_courses/internal/lesson"
+	"github.com/gef3dx/it_courses/internal/mailer"
+	"github.com/gef3dx/it_courses/internal/page"
+	"github.com/gef3dx/it_courses/internal/payment"
+	"github.com/gef3dx/it_courses/internal/queue"
+	"github.com/gef3dx/it_courses/internal/storage"
+	testdomain "github.com/gef3dx/it_courses/internal/test"
+	"github.com/gef3dx/it_courses/internal/upload"
 	"github.com/gef3dx/it_courses/internal/user"
 )
 
@@ -59,13 +71,13 @@ func healthHandler(c fiber.Ctx) error {
 
 // NewApp поднимает соединение с БД, применяет миграции и регистрирует HTTP-маршруты.
 func NewApp(cfg *config.Config) (*App, error) {
-	storage, err := postgres.New(cfg.Postgres)
+	pgStorage, err := postgres.New(cfg.Postgres)
 	if err != nil {
 		return nil, fmt.Errorf("init postgres: %w", err)
 	}
 
 	// Перед стартом приложения приводим схему БД к актуальному состоянию.
-	if err := postgres.ApplyMigrations(storage.DB, cfg.Migrations); err != nil {
+	if err := postgres.ApplyMigrations(pgStorage.DB, cfg.Migrations); err != nil {
 		return nil, fmt.Errorf("apply migrations: %w", err)
 	}
 
@@ -87,14 +99,45 @@ func NewApp(cfg *config.Config) (*App, error) {
 	app.Get("/", rootHandler)
 	app.Get("/health", healthHandler)
 
-	// Собираем user-модуль из репозитория, сервиса и роутов.
-	userRepository := user.NewRepository(storage.DB)
+	userRepository := user.NewRepository(pgStorage.DB)
+	authRepository := auth.NewRepository(pgStorage.DB, userRepository)
+	authService := auth.NewService(authRepository, mailer.NoopSender{}, cfg.Auth)
 	userService := user.NewService(userRepository)
-	user.RegisterRoutes(app, userService)
+	courseRepository := course.NewRepository(pgStorage.DB)
+	courseService := course.NewService(courseRepository)
+	paymentRepository := payment.NewRepository(pgStorage.DB, courseRepository)
+	paymentService := payment.NewService(paymentRepository, courseRepository)
+	testRepository := testdomain.NewRepository(pgStorage.DB)
+	testService := testdomain.NewService(testRepository)
+	lessonRepository := lesson.NewRepository(pgStorage.DB)
+	lessonService := lesson.NewService(lessonRepository)
+	pageRepository := page.NewRepository(pgStorage.DB)
+	pageService := page.NewService(pageRepository)
+	articleRepository := article.NewRepository(pgStorage.DB)
+	articleService := article.NewService(articleRepository)
+	storageService := storage.New(cfg.Storage.BaseURL)
+	publisher := queue.NoopPublisher{}
+	_ = cache.NewCache()
+
+	auth.RegisterRoutes(app, authService)
+	user.RegisterRoutes(
+		app,
+		userService,
+		authService.Required(),
+		authService.Required(user.RoleAdmin),
+		authService.OwnerOrAdmin(),
+	)
+	course.RegisterRoutes(app, courseService, authService)
+	payment.RegisterRoutes(app, paymentService, authService)
+	testdomain.RegisterRoutes(app, testService, authService)
+	lesson.RegisterRoutes(app, lessonService, authService)
+	page.RegisterRoutes(app, pageService, authService)
+	article.RegisterRoutes(app, articleService, authService)
+	upload.RegisterRoutes(app, authService, storageService, publisher)
 
 	return &App{
 		Fiber:   app,
-		Storage: storage,
+		Storage: pgStorage,
 	}, nil
 }
 

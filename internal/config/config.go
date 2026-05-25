@@ -12,6 +12,8 @@ import (
 // Config объединяет все разделы конфигурационного файла приложения.
 type Config struct {
 	HTTP       HTTPConfig       `yaml:"http"`
+	Auth       AuthConfig       `yaml:"auth"`
+	Storage    StorageConfig    `yaml:"storage"`
 	Postgres   PostgresConfig   `yaml:"postgres"`
 	Migrations MigrationsConfig `yaml:"migrations"`
 }
@@ -20,6 +22,19 @@ type Config struct {
 type HTTPConfig struct {
 	Host string `yaml:"host" env-default:"0.0.0.0"`
 	Port string `yaml:"port" env-default:"3000"`
+}
+
+// AuthConfig хранит настройки JWT-токенов и секрет подписи.
+type AuthConfig struct {
+	JWTSecret                 string `yaml:"jwt_secret" env-default:"development-secret"`
+	AccessTokenTTLMinutes     int    `yaml:"access_token_ttl_minutes" env-default:"15"`
+	RefreshTokenTTLHours      int    `yaml:"refresh_token_ttl_hours" env-default:"720"`
+	PasswordResetTTLMinutes   int    `yaml:"password_reset_ttl_minutes" env-default:"60"`
+	EmailVerificationTTLHours int    `yaml:"email_verification_ttl_hours" env-default:"24"`
+}
+
+type StorageConfig struct {
+	BaseURL string `yaml:"base_url" env-default:"http://localhost:3000/uploads"`
 }
 
 // PostgresConfig хранит параметры подключения к PostgreSQL.
@@ -127,4 +142,24 @@ func (cfg PoolConfig) IdleTimeout() time.Duration {
 // Delay преобразует задержку между ретраями подключения в time.Duration.
 func (cfg RetryConfig) Delay() time.Duration {
 	return time.Duration(cfg.RetryDelayMs) * time.Millisecond
+}
+
+// AccessTokenTTL возвращает TTL access token.
+func (cfg AuthConfig) AccessTokenTTL() time.Duration {
+	return time.Duration(cfg.AccessTokenTTLMinutes) * time.Minute
+}
+
+// RefreshTokenTTL возвращает TTL refresh token.
+func (cfg AuthConfig) RefreshTokenTTL() time.Duration {
+	return time.Duration(cfg.RefreshTokenTTLHours) * time.Hour
+}
+
+// PasswordResetTTL возвращает TTL токена сброса пароля.
+func (cfg AuthConfig) PasswordResetTTL() time.Duration {
+	return time.Duration(cfg.PasswordResetTTLMinutes) * time.Minute
+}
+
+// EmailVerificationTTL возвращает TTL токена подтверждения email.
+func (cfg AuthConfig) EmailVerificationTTL() time.Duration {
+	return time.Duration(cfg.EmailVerificationTTLHours) * time.Hour
 }

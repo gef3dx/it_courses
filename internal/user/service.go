@@ -5,15 +5,14 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"golang.org/x/crypto/bcrypt"
 )
 
-// Service содержит бизнес-логику user-модуля и валидацию входных данных.
 type Service struct {
 	repository *Repository
 	validate   *validator.Validate
 }
 
-// NewService создаёт сервис пользователей поверх репозитория.
 func NewService(repository *Repository) *Service {
 	return &Service{
 		repository: repository,
@@ -21,31 +20,29 @@ func NewService(repository *Repository) *Service {
 	}
 }
 
-// List делегирует получение пользователей в слой репозитория.
 func (s *Service) List(ctx context.Context) ([]Model, error) {
 	return s.repository.List(ctx)
 }
 
-// GetByID возвращает пользователя по ID.
 func (s *Service) GetByID(ctx context.Context, id int64) (*Model, error) {
 	return s.repository.FindByID(ctx, id)
 }
 
-// FindByEmail возвращает пользователя по email.
 func (s *Service) FindByEmail(ctx context.Context, email string) (*Model, error) {
 	return s.repository.FindByEmail(ctx, email)
 }
 
-// Create валидирует входные данные и создаёт пользователя через репозиторий.
 func (s *Service) Create(ctx context.Context, input CreateInput) (*Model, error) {
-	// Нормализуем строковые поля до запуска декларативной валидации.
 	input.Email = strings.TrimSpace(input.Email)
 	input.Phone = strings.TrimSpace(input.Phone)
 	input.Name = strings.TrimSpace(input.Name)
 	input.FirstName = strings.TrimSpace(input.FirstName)
 	input.LastName = strings.TrimSpace(input.LastName)
 
-	// Проверяем вход по validate-тегам в CreateInput.
+	if input.Role == "" {
+		input.Role = RoleStudent
+	}
+
 	if err := s.validate.Struct(input); err != nil {
 		return nil, buildValidationError(err)
 	}
@@ -53,7 +50,6 @@ func (s *Service) Create(ctx context.Context, input CreateInput) (*Model, error)
 	return s.repository.Create(ctx, input)
 }
 
-// Update валидирует входные данные и обновляет пользователя через репозиторий.
 func (s *Service) Update(ctx context.Context, id int64, input UpdateInput) (*Model, error) {
 	if input.Email != nil {
 		trimmed := strings.TrimSpace(*input.Email)
@@ -83,12 +79,50 @@ func (s *Service) Update(ctx context.Context, id int64, input UpdateInput) (*Mod
 	return s.repository.Update(ctx, id, input)
 }
 
-// Delete удаляет пользователя по ID через репозиторий.
 func (s *Service) Delete(ctx context.Context, id int64) error {
+	return s.ensureNotLastAdmin(ctx, id, false)
+}
+
+func (s *Service) DeleteSelf(ctx context.Context, id int64, password string) error {
+	if strings.TrimSpace(password) == "" {
+		return ErrPasswordRequired
+	}
+
+	target, err := s.repository.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if target.PasswordHash == "" || bcrypt.CompareHashAndPassword([]byte(target.PasswordHash), []byte(password)) != nil {
+		return ErrInvalidPassword
+	}
+
+	return s.ensureNotLastAdmin(ctx, id, true)
+}
+
+func (s *Service) ensureNotLastAdmin(ctx context.Context, id int64, checkedUser bool) error {
+	target, err := s.repository.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if target.Role == RoleAdmin {
+		adminCount, err := s.repository.CountByRole(ctx, RoleAdmin)
+		if err != nil {
+			return err
+		}
+		if adminCount <= 1 {
+			return ErrLastAdmin
+		}
+	}
+
+	if checkedUser {
+		return s.repository.Delete(ctx, id)
+	}
+
 	return s.repository.Delete(ctx, id)
 }
 
-// buildValidationError преобразует ошибки validator в понятное сообщение для API.
 func buildValidationError(err error) error {
 	validationErrors, ok := err.(validator.ValidationErrors)
 	if !ok || len(validationErrors) == 0 {
@@ -126,6 +160,8 @@ func buildValidationError(err error) error {
 			return ValidationError{Message: "last_name length must be between 2 and 100 characters"}
 		}
 		return ValidationError{Message: "last_name is required"}
+	case "Role":
+		return ValidationError{Message: "role must be one of student, teacher, admin"}
 	default:
 		return ValidationError{Message: "invalid request data"}
 	}

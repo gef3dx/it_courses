@@ -1,0 +1,120 @@
+CREATE TABLE IF NOT EXISTS tests (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    author_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS pages (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    content TEXT NOT NULL DEFAULT '',
+    is_published BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS articles (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    content TEXT NOT NULL DEFAULT '',
+    author_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    is_published BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS lessons (
+    id BIGSERIAL PRIMARY KEY,
+    course_id BIGINT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    content TEXT NOT NULL DEFAULT '',
+    author_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    is_published BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS questions (
+    id BIGSERIAL PRIMARY KEY,
+    test_id BIGINT REFERENCES tests(id) ON DELETE CASCADE,
+    lesson_id BIGINT REFERENCES lessons(id) ON DELETE CASCADE,
+    text TEXT NOT NULL,
+    solution TEXT NOT NULL DEFAULT '',
+    author_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS answer_options (
+    id BIGSERIAL PRIMARY KEY,
+    question_id BIGINT NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    text VARCHAR(500) NOT NULL,
+    is_correct BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS test_results (
+    id BIGSERIAL PRIMARY KEY,
+    test_id BIGINT NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    score INTEGER NOT NULL DEFAULT 0,
+    max_score INTEGER NOT NULL DEFAULT 0,
+    grade DOUBLE PRECISION NOT NULL DEFAULT 0,
+    completed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS test_answers (
+    id BIGSERIAL PRIMARY KEY,
+    result_id BIGINT NOT NULL REFERENCES test_results(id) ON DELETE CASCADE,
+    question_id BIGINT NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    selected_option_id BIGINT NOT NULL REFERENCES answer_options(id) ON DELETE CASCADE,
+    is_correct BOOLEAN NOT NULL DEFAULT false
+);
+
+CREATE TABLE IF NOT EXISTS lesson_media (
+    id BIGSERIAL PRIMARY KEY,
+    lesson_id BIGINT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+    media_type VARCHAR(20) NOT NULL,
+    url TEXT NOT NULL,
+    caption VARCHAR(500) NOT NULL DEFAULT '',
+    sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS lesson_test_links (
+    id BIGSERIAL PRIMARY KEY,
+    lesson_id BIGINT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+    test_id BIGINT NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
+    description VARCHAR(500) NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS article_media (
+    id BIGSERIAL PRIMARY KEY,
+    article_id BIGINT NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+    media_type VARCHAR(20) NOT NULL,
+    url TEXT NOT NULL,
+    caption VARCHAR(500) NOT NULL DEFAULT '',
+    sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS article_test_links (
+    id BIGSERIAL PRIMARY KEY,
+    article_id BIGINT NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+    test_id BIGINT NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
+    description VARCHAR(500) NOT NULL DEFAULT ''
+);
+
+CREATE INDEX IF NOT EXISTS idx_pages_slug ON pages (slug);
+CREATE INDEX IF NOT EXISTS idx_articles_slug ON articles (slug);
+CREATE INDEX IF NOT EXISTS idx_lessons_slug ON lessons (slug);
+CREATE INDEX IF NOT EXISTS idx_lessons_course_id ON lessons (course_id);
+CREATE INDEX IF NOT EXISTS idx_questions_test_id ON questions (test_id);
+CREATE INDEX IF NOT EXISTS idx_questions_lesson_id ON questions (lesson_id);

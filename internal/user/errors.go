@@ -2,13 +2,15 @@ package user
 
 import "errors"
 
-// Ошибки модуля user, которые безопасно возвращать между слоями приложения.
 var (
-	ErrUserConflict = errors.New("user already exists")
-	ErrUserNotFound = errors.New("user not found")
+	ErrUserConflict      = errors.New("user already exists")
+	ErrUserNotFound      = errors.New("user not found")
+	ErrLastAdmin         = errors.New("cannot delete the last admin")
+	ErrInvalidPassword   = errors.New("invalid password")
+	ErrPasswordRequired  = errors.New("password is required")
+	ErrForbiddenRoleEdit = errors.New("forbidden role update")
 )
 
-// ValidationError описывает ошибку проверки пользовательского ввода.
 type ValidationError struct {
 	Message string
 }
@@ -17,7 +19,6 @@ func (e ValidationError) Error() string {
 	return e.Message
 }
 
-// IsValidationError проверяет, относится ли ошибка к валидации входных данных.
 func IsValidationError(err error) bool {
 	var validationErr ValidationError
 	return errors.As(err, &validationErr)

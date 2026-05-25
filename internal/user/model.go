@@ -1,21 +1,29 @@
-// Package user содержит доменную логику для работы с пользователями.
 package user
 
 import "time"
 
-// Model описывает запись пользователя в таблице users и формат ответа API.
+const (
+	RoleStudent = "student"
+	RoleTeacher = "teacher"
+	RoleAdmin   = "admin"
+)
+
 type Model struct {
-	ID        int64     `json:"id"`
-	Email     string    `json:"email" gorm:"unique"`
-	Phone     string    `json:"phone"`
-	Name      string    `json:"name"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID                     int64      `json:"id"`
+	Email                  string     `json:"email" gorm:"unique"`
+	Phone                  string     `json:"phone"`
+	Name                   string     `json:"name"`
+	FirstName              string     `json:"first_name"`
+	LastName               string     `json:"last_name"`
+	PasswordHash           string     `json:"-" gorm:"column:password_hash"`
+	Role                   string     `json:"role"`
+	EmailVerifiedAt        *time.Time `json:"email_verified_at" gorm:"column:email_verified_at"`
+	EmailVerificationToken string     `json:"-" gorm:"column:email_verification_token"`
+	TokenVersion           int        `json:"-" gorm:"column:token_version"`
+	CreatedAt              time.Time  `json:"created_at"`
+	UpdatedAt              time.Time  `json:"updated_at"`
 }
 
-// TableName явно задаёт имя таблицы для модели пользователя в GORM.
 func (Model) TableName() string {
 	return "users"
 }
