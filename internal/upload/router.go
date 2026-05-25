@@ -24,6 +24,15 @@ func RegisterRoutes(app *fiber.App, authService AuthContext, storageService *sto
 	app.Post("/upload", authService.Required(), h.upload)
 }
 
+// @Summary Загрузка файла
+// @Description Загружает изображение или видео в хранилище. Поддерживаемые типы: JPEG, PNG, WebP, MP4
+// @Tags upload
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Файл для загрузки"
+// @Success 201 {object} storage.Object
+// @Failure 400 {string} error
+// @Router /upload [post]
 func (h *handler) upload(c fiber.Ctx) error {
 	fileHeader, err := c.FormFile("file")
 	if err != nil {

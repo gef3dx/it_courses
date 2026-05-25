@@ -30,6 +30,13 @@ func RegisterRoutes(app *fiber.App, service *Service, authService AuthContext) {
 	app.Delete("/courses/:id/access/:userId", authService.Required("admin"), h.revokeAccess)
 }
 
+// @Summary Список курсов
+// @Description Возвращает список курсов. Для student — только курсы, к которым есть доступ
+// @Tags courses
+// @Produce json
+// @Success 200 {array} Model
+// @Failure 500 {string} error
+// @Router /courses [get]
 func (h *handler) list(c fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(int64)
 	role, _ := c.Locals("role").(string)
@@ -42,6 +49,13 @@ func (h *handler) list(c fiber.Ctx) error {
 	return c.JSON(items)
 }
 
+// @Summary Мои курсы
+// @Description Возвращает список курсов, к которым у текущего пользователя есть доступ
+// @Tags courses
+// @Produce json
+// @Success 200 {array} Model
+// @Failure 500 {string} error
+// @Router /my/courses [get]
 func (h *handler) myCourses(c fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(int64)
 	items, err := h.service.MyCourses(c.Context(), userID)
@@ -51,6 +65,15 @@ func (h *handler) myCourses(c fiber.Ctx) error {
 	return c.JSON(items)
 }
 
+// @Summary Детали курса
+// @Description Возвращает курс с уроками по slug. Для student проверяется наличие доступа
+// @Tags courses
+// @Produce json
+// @Param slug path string true "Slug курса"
+// @Success 200 {object} Model
+// @Failure 403 {string} error
+// @Failure 404 {string} error
+// @Router /courses/{slug} [get]
 func (h *handler) getBySlug(c fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(int64)
 	role, _ := c.Locals("role").(string)
@@ -70,6 +93,16 @@ func (h *handler) getBySlug(c fiber.Ctx) error {
 	return c.JSON(item)
 }
 
+// @Summary Создать курс
+// @Description Создаёт новый курс. Доступно teacher и admin
+// @Tags courses
+// @Accept json
+// @Produce json
+// @Param input body CreateInput true "Данные курса"
+// @Success 201 {object} Model
+// @Failure 400 {string} error
+// @Failure 409 {string} error
+// @Router /courses [post]
 func (h *handler) create(c fiber.Ctx) error {
 	var input CreateInput
 	if err := c.Bind().Body(&input); err != nil {
@@ -90,6 +123,18 @@ func (h *handler) create(c fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(item)
 }
 
+// @Summary Обновить курс
+// @Description Обновляет данные курса по ID. Доступно teacher и admin
+// @Tags courses
+// @Accept json
+// @Produce json
+// @Param id path int true "ID курса"
+// @Param input body UpdateInput true "Данные для обновления"
+// @Success 200 {object} Model
+// @Failure 400 {string} error
+// @Failure 404 {string} error
+// @Failure 409 {string} error
+// @Router /courses/{id} [put]
 func (h *handler) update(c fiber.Ctx) error {
 	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {
@@ -116,6 +161,15 @@ func (h *handler) update(c fiber.Ctx) error {
 	return c.JSON(item)
 }
 
+// @Summary Удалить курс
+// @Description Удаляет курс по ID. Доступно teacher и admin
+// @Tags courses
+// @Produce json
+// @Param id path int true "ID курса"
+// @Success 204 "No Content"
+// @Failure 400 {string} error
+// @Failure 404 {string} error
+// @Router /courses/{id} [delete]
 func (h *handler) delete(c fiber.Ctx) error {
 	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {
@@ -132,6 +186,15 @@ func (h *handler) delete(c fiber.Ctx) error {
 	return c.SendStatus(http.StatusNoContent)
 }
 
+// @Summary Список доступов к курсу
+// @Description Возвращает список пользователей, имеющих доступ к курсу. Только admin
+// @Tags courses
+// @Produce json
+// @Param id path int true "ID курса"
+// @Success 200 {array} Access
+// @Failure 400 {string} error
+// @Failure 404 {string} error
+// @Router /courses/{id}/access [get]
 func (h *handler) listAccesses(c fiber.Ctx) error {
 	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {
@@ -149,6 +212,18 @@ func (h *handler) listAccesses(c fiber.Ctx) error {
 	return c.JSON(items)
 }
 
+// @Summary Выдать доступ к курсу
+// @Description Предоставляет пользователю доступ к курсу. Только admin
+// @Tags courses
+// @Accept json
+// @Produce json
+// @Param id path int true "ID курса"
+// @Param input body GrantAccessInput true "ID пользователя"
+// @Success 201 {object} Access
+// @Failure 400 {string} error
+// @Failure 404 {string} error
+// @Failure 409 {string} error
+// @Router /courses/{id}/access [post]
 func (h *handler) grantAccess(c fiber.Ctx) error {
 	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {
@@ -176,6 +251,16 @@ func (h *handler) grantAccess(c fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(item)
 }
 
+// @Summary Отозвать доступ к курсу
+// @Description Отзывает доступ пользователя к курсу. Только admin
+// @Tags courses
+// @Produce json
+// @Param id path int true "ID курса"
+// @Param userId path int true "ID пользователя"
+// @Success 204 "No Content"
+// @Failure 400 {string} error
+// @Failure 404 {string} error
+// @Router /courses/{id}/access/{userId} [delete]
 func (h *handler) revokeAccess(c fiber.Ctx) error {
 	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {

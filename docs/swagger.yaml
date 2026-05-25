@@ -1,5 +1,249 @@
 basePath: /
 definitions:
+  article.CreateInput:
+    properties:
+      content:
+        type: string
+      is_published:
+        type: boolean
+      media:
+        items:
+          $ref: '#/definitions/article.MediaInput'
+        type: array
+      slug:
+        maxLength: 255
+        minLength: 2
+        type: string
+      tests:
+        items:
+          $ref: '#/definitions/article.TestLinkInput'
+        type: array
+      title:
+        maxLength: 255
+        minLength: 2
+        type: string
+    required:
+    - title
+    type: object
+  article.Media:
+    properties:
+      article_id:
+        type: integer
+      caption:
+        type: string
+      id:
+        type: integer
+      media_type:
+        type: string
+      sort_order:
+        type: integer
+      url:
+        type: string
+    type: object
+  article.MediaInput:
+    properties:
+      caption:
+        type: string
+      media_type:
+        enum:
+        - image
+        - video
+        type: string
+      sort_order:
+        type: integer
+      url:
+        type: string
+    required:
+    - media_type
+    - url
+    type: object
+  article.Model:
+    properties:
+      author_id:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_published:
+        type: boolean
+      media:
+        items:
+          $ref: '#/definitions/article.Media'
+        type: array
+      slug:
+        type: string
+      tests:
+        items:
+          $ref: '#/definitions/article.TestLink'
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  article.TestLink:
+    properties:
+      article_id:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      test_id:
+        type: integer
+    type: object
+  article.TestLinkInput:
+    properties:
+      description:
+        type: string
+      test_id:
+        type: integer
+    required:
+    - test_id
+    type: object
+  article.UpdateInput:
+    properties:
+      content:
+        type: string
+      is_published:
+        type: boolean
+      media:
+        items:
+          $ref: '#/definitions/article.MediaInput'
+        type: array
+      slug:
+        maxLength: 255
+        minLength: 2
+        type: string
+      tests:
+        items:
+          $ref: '#/definitions/article.TestLinkInput'
+        type: array
+      title:
+        maxLength: 255
+        minLength: 2
+        type: string
+    type: object
+  auth.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+      user:
+        $ref: '#/definitions/user.Model'
+    type: object
+  auth.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  auth.ForgotPasswordInput:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  auth.LoginInput:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 72
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  auth.RefreshInput:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  auth.RegisterInput:
+    properties:
+      email:
+        type: string
+      first_name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      last_name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      password:
+        maxLength: 72
+        minLength: 8
+        type: string
+      phone:
+        maxLength: 20
+        minLength: 10
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - name
+    - password
+    - phone
+    type: object
+  auth.ResendVerificationInput:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  auth.ResetPasswordInput:
+    properties:
+      new_password:
+        maxLength: 72
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - new_password
+    - token
+    type: object
+  auth.ResetTokenResponse:
+    properties:
+      expires_at:
+        type: string
+      token:
+        type: string
+    type: object
+  auth.TokenPair:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  auth.VerifyEmailInput:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
   bootstrap.HealthResponse:
     properties:
       database:
@@ -12,37 +256,642 @@ definitions:
       message:
         type: string
     type: object
-  user.CreateInput:
+  course.Access:
     properties:
-      email:
-        example: ivan@example.com
+      course_id:
+        type: integer
+      expires_at:
         type: string
-      first_name:
-        example: Ivanov
-        maxLength: 100
+      granted_at:
+        type: string
+      granted_by:
+        type: integer
+      id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  course.CreateInput:
+    properties:
+      description:
+        type: string
+      is_published:
+        type: boolean
+      price:
+        minimum: 0
+        type: number
+      slug:
+        maxLength: 255
         minLength: 2
         type: string
-      last_name:
-        example: Ivanovich
-        maxLength: 100
+      title:
+        maxLength: 255
         minLength: 2
-        type: string
-      name:
-        example: Ivan
-        maxLength: 100
-        minLength: 2
-        type: string
-      phone:
-        example: "9094445566"
-        maxLength: 20
-        minLength: 10
         type: string
     required:
-    - email
-    - first_name
-    - last_name
-    - name
-    - phone
+    - title
+    type: object
+  course.GrantAccessInput:
+    properties:
+      expires_at:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - user_id
+    type: object
+  course.Model:
+    properties:
+      author_id:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      is_published:
+        type: boolean
+      price:
+        type: number
+      slug:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  course.UpdateInput:
+    properties:
+      description:
+        type: string
+      is_published:
+        type: boolean
+      price:
+        minimum: 0
+        type: number
+      slug:
+        maxLength: 255
+        minLength: 2
+        type: string
+      title:
+        maxLength: 255
+        minLength: 2
+        type: string
+    type: object
+  lesson.AnswerOption:
+    properties:
+      id:
+        type: integer
+      is_correct:
+        type: boolean
+      question_id:
+        type: integer
+      text:
+        type: string
+    type: object
+  lesson.AnswerOptionInput:
+    properties:
+      is_correct:
+        type: boolean
+      text:
+        maxLength: 500
+        minLength: 1
+        type: string
+    required:
+    - text
+    type: object
+  lesson.CreateInput:
+    properties:
+      content:
+        type: string
+      is_published:
+        type: boolean
+      media:
+        items:
+          $ref: '#/definitions/lesson.MediaInput'
+        type: array
+      slug:
+        maxLength: 255
+        minLength: 2
+        type: string
+      sort_order:
+        type: integer
+      tests:
+        items:
+          $ref: '#/definitions/lesson.TestLinkInput'
+        type: array
+      title:
+        maxLength: 255
+        minLength: 2
+        type: string
+    required:
+    - title
+    type: object
+  lesson.Media:
+    properties:
+      caption:
+        type: string
+      id:
+        type: integer
+      lesson_id:
+        type: integer
+      media_type:
+        type: string
+      sort_order:
+        type: integer
+      url:
+        type: string
+    type: object
+  lesson.MediaInput:
+    properties:
+      caption:
+        type: string
+      media_type:
+        enum:
+        - image
+        - video
+        type: string
+      sort_order:
+        type: integer
+      url:
+        type: string
+    required:
+    - media_type
+    - url
+    type: object
+  lesson.Model:
+    properties:
+      author_id:
+        type: integer
+      content:
+        type: string
+      course_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_published:
+        type: boolean
+      media:
+        items:
+          $ref: '#/definitions/lesson.Media'
+        type: array
+      slug:
+        type: string
+      sort_order:
+        type: integer
+      tests:
+        items:
+          $ref: '#/definitions/lesson.TestLink'
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  lesson.PublicAnswerOption:
+    properties:
+      id:
+        type: integer
+      text:
+        type: string
+    type: object
+  lesson.PublicQuestion:
+    properties:
+      id:
+        type: integer
+      options:
+        items:
+          $ref: '#/definitions/lesson.PublicAnswerOption'
+        type: array
+      solution:
+        type: string
+      sort_order:
+        type: integer
+      text:
+        type: string
+    type: object
+  lesson.Question:
+    properties:
+      author_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      lesson_id:
+        type: integer
+      options:
+        items:
+          $ref: '#/definitions/lesson.AnswerOption'
+        type: array
+      solution:
+        type: string
+      sort_order:
+        type: integer
+      text:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  lesson.QuestionInput:
+    properties:
+      options:
+        items:
+          $ref: '#/definitions/lesson.AnswerOptionInput'
+        minItems: 2
+        type: array
+      solution:
+        type: string
+      sort_order:
+        type: integer
+      text:
+        minLength: 1
+        type: string
+    required:
+    - options
+    - text
+    type: object
+  lesson.ReorderItem:
+    properties:
+      id:
+        type: integer
+      sort_order:
+        type: integer
+    required:
+    - id
+    type: object
+  lesson.SubmitAnswerInput:
+    properties:
+      question_id:
+        type: integer
+      selected_option_id:
+        type: integer
+    required:
+    - question_id
+    - selected_option_id
+    type: object
+  lesson.SubmitInput:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/lesson.SubmitAnswerInput'
+        minItems: 1
+        type: array
+    required:
+    - answers
+    type: object
+  lesson.SubmitResponse:
+    properties:
+      grade:
+        type: number
+      max_score:
+        type: integer
+      questions:
+        items:
+          $ref: '#/definitions/lesson.PublicQuestion'
+        type: array
+      score:
+        type: integer
+    type: object
+  lesson.TestLink:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      lesson_id:
+        type: integer
+      test_id:
+        type: integer
+    type: object
+  lesson.TestLinkInput:
+    properties:
+      description:
+        type: string
+      test_id:
+        type: integer
+    required:
+    - test_id
+    type: object
+  lesson.UpdateInput:
+    properties:
+      content:
+        type: string
+      is_published:
+        type: boolean
+      media:
+        items:
+          $ref: '#/definitions/lesson.MediaInput'
+        type: array
+      slug:
+        maxLength: 255
+        minLength: 2
+        type: string
+      sort_order:
+        type: integer
+      tests:
+        items:
+          $ref: '#/definitions/lesson.TestLinkInput'
+        type: array
+      title:
+        maxLength: 255
+        minLength: 2
+        type: string
+    type: object
+  page.CreateInput:
+    properties:
+      content:
+        type: string
+      is_published:
+        type: boolean
+      slug:
+        maxLength: 255
+        minLength: 2
+        type: string
+      title:
+        maxLength: 255
+        minLength: 2
+        type: string
+    required:
+    - title
+    type: object
+  page.Model:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_published:
+        type: boolean
+      slug:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  page.UpdateInput:
+    properties:
+      content:
+        type: string
+      is_published:
+        type: boolean
+      slug:
+        maxLength: 255
+        minLength: 2
+        type: string
+      title:
+        maxLength: 255
+        minLength: 2
+        type: string
+    type: object
+  payment.CreateInput:
+    properties:
+      payment_method:
+        maxLength: 50
+        minLength: 2
+        type: string
+    required:
+    - payment_method
+    type: object
+  payment.Model:
+    properties:
+      amount:
+        type: number
+      course_id:
+        type: integer
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: integer
+      paid_at:
+        type: string
+      payment_method:
+        type: string
+      status:
+        type: string
+      transaction_id:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  payment.UpdateStatusInput:
+    properties:
+      status:
+        enum:
+        - completed
+        - failed
+        - refunded
+        type: string
+      transaction_id:
+        type: string
+    required:
+    - status
+    type: object
+  storage.Object:
+    properties:
+      mime_type:
+        type: string
+      url:
+        type: string
+    type: object
+  test.AnswerOption:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_correct:
+        type: boolean
+      question_id:
+        type: integer
+      text:
+        type: string
+    type: object
+  test.AnswerOptionInput:
+    properties:
+      is_correct:
+        type: boolean
+      text:
+        maxLength: 500
+        minLength: 1
+        type: string
+    required:
+    - text
+    type: object
+  test.CreateInput:
+    properties:
+      description:
+        type: string
+      title:
+        maxLength: 255
+        minLength: 2
+        type: string
+    required:
+    - title
+    type: object
+  test.Model:
+    properties:
+      author_id:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      questions:
+        items:
+          $ref: '#/definitions/test.Question'
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  test.PublicAnswerOption:
+    properties:
+      id:
+        type: integer
+      text:
+        type: string
+    type: object
+  test.PublicQuestion:
+    properties:
+      id:
+        type: integer
+      options:
+        items:
+          $ref: '#/definitions/test.PublicAnswerOption'
+        type: array
+      solution:
+        type: string
+      sort_order:
+        type: integer
+      text:
+        type: string
+    type: object
+  test.Question:
+    properties:
+      author_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      lesson_id:
+        type: integer
+      options:
+        items:
+          $ref: '#/definitions/test.AnswerOption'
+        type: array
+      solution:
+        type: string
+      sort_order:
+        type: integer
+      test_id:
+        type: integer
+      text:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  test.QuestionInput:
+    properties:
+      options:
+        items:
+          $ref: '#/definitions/test.AnswerOptionInput'
+        minItems: 2
+        type: array
+      solution:
+        type: string
+      sort_order:
+        type: integer
+      text:
+        minLength: 1
+        type: string
+    required:
+    - options
+    - text
+    type: object
+  test.Result:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/test.ResultItem'
+        type: array
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      grade:
+        type: number
+      id:
+        type: integer
+      max_score:
+        type: integer
+      score:
+        type: integer
+      test_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  test.ResultItem:
+    properties:
+      id:
+        type: integer
+      is_correct:
+        type: boolean
+      question_id:
+        type: integer
+      result_id:
+        type: integer
+      selected_option_id:
+        type: integer
+    type: object
+  test.SubmitAnswerInput:
+    properties:
+      question_id:
+        type: integer
+      selected_option_id:
+        type: integer
+    required:
+    - question_id
+    - selected_option_id
+    type: object
+  test.SubmitInput:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/test.SubmitAnswerInput'
+        minItems: 1
+        type: array
+    required:
+    - answers
+    type: object
+  test.UpdateInput:
+    properties:
+      description:
+        type: string
+      title:
+        maxLength: 255
+        minLength: 2
+        type: string
+    type: object
+  user.DeleteInput:
+    properties:
+      password:
+        type: string
     type: object
   user.ErrorResponse:
     properties:
@@ -56,6 +905,8 @@ definitions:
         type: string
       email:
         type: string
+      email_verified_at:
+        type: string
       first_name:
         type: string
       id:
@@ -65,6 +916,8 @@ definitions:
       name:
         type: string
       phone:
+        type: string
+      role:
         type: string
       updated_at:
         type: string
@@ -115,6 +968,800 @@ paths:
       summary: Корневой маршрут
       tags:
       - system
+  /articles:
+    get:
+      description: Возвращает список всех образовательных статей
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/article.Model'
+            type: array
+      summary: Список статей
+      tags:
+      - articles
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новую образовательную статью. Доступно teacher и admin
+      parameters:
+      - description: Данные статьи
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/article.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/article.Model'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Создать статью
+      tags:
+      - articles
+  /articles/{id}:
+    delete:
+      description: Удаляет статью по ID. Доступно teacher и admin
+      parameters:
+      - description: ID статьи
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Удалить статью
+      tags:
+      - articles
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные статьи. Доступно teacher и admin
+      parameters:
+      - description: ID статьи
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/article.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/article.Model'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Обновить статью
+      tags:
+      - articles
+  /articles/{slug}:
+    get:
+      description: Возвращает статью с медиа и ссылками на тесты по slug
+      parameters:
+      - description: Slug статьи
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/article.Model'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Детали статьи
+      tags:
+      - articles
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Отправляет письмо со ссылкой для сброса пароля
+      parameters:
+      - description: Email пользователя
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.ForgotPasswordInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.ResetTokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Запрос восстановления пароля
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Аутентификация по email и паролю, возвращает JWT токены
+      parameters:
+      - description: Учётные данные
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Вход в систему
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Получает новую пару access + refresh токенов по refresh токену
+      parameters:
+      - description: Refresh токен
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RefreshInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.TokenPair'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Обновление JWT токена
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового пользователя и отправляет письмо для подтверждения
+        email
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Регистрация пользователя
+      tags:
+      - auth
+  /auth/resend-verification:
+    post:
+      consumes:
+      - application/json
+      description: Генерирует новый токен и отправляет письмо подтверждения
+      parameters:
+      - description: Email пользователя
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.ResendVerificationInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Повторная отправка подтверждения email
+      tags:
+      - auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Устанавливает новый пароль по токену из письма восстановления
+      parameters:
+      - description: Токен и новый пароль
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.ResetPasswordInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Сброс пароля
+      tags:
+      - auth
+  /auth/verify-email:
+    post:
+      consumes:
+      - application/json
+      description: Подтверждает email пользователя по токену из письма
+      parameters:
+      - description: Токен подтверждения
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.VerifyEmailInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Подтверждение email
+      tags:
+      - auth
+  /courses:
+    get:
+      description: Возвращает список курсов. Для student — только курсы, к которым
+        есть доступ
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/course.Model'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Список курсов
+      tags:
+      - courses
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новый курс. Доступно teacher и admin
+      parameters:
+      - description: Данные курса
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/course.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/course.Model'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Создать курс
+      tags:
+      - courses
+  /courses/{courseId}/lessons:
+    get:
+      description: Возвращает все уроки указанного курса
+      parameters:
+      - description: ID курса
+        in: path
+        name: courseId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/lesson.Model'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Список уроков курса
+      tags:
+      - lessons
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новый урок в курсе. Доступно teacher и admin
+      parameters:
+      - description: ID курса
+        in: path
+        name: courseId
+        required: true
+        type: integer
+      - description: Данные урока
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/lesson.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/lesson.Model'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Создать урок
+      tags:
+      - lessons
+  /courses/{courseId}/lessons/{id}:
+    delete:
+      description: Удаляет урок из курса. Доступно teacher и admin
+      parameters:
+      - description: ID курса
+        in: path
+        name: courseId
+        required: true
+        type: integer
+      - description: ID урока
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Удалить урок
+      tags:
+      - lessons
+    get:
+      description: Возвращает урок с контентом, медиа и ссылками на тесты
+      parameters:
+      - description: ID курса
+        in: path
+        name: courseId
+        required: true
+        type: integer
+      - description: ID урока
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/lesson.Model'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Детали урока
+      tags:
+      - lessons
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные урока. Доступно teacher и admin
+      parameters:
+      - description: ID курса
+        in: path
+        name: courseId
+        required: true
+        type: integer
+      - description: ID урока
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/lesson.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/lesson.Model'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Обновить урок
+      tags:
+      - lessons
+  /courses/{courseId}/lessons/reorder:
+    patch:
+      consumes:
+      - application/json
+      description: Меняет порядок уроков в курсе. Доступно teacher и admin
+      parameters:
+      - description: ID курса
+        in: path
+        name: courseId
+        required: true
+        type: integer
+      - description: Массив ID и sort_order
+        in: body
+        name: input
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/lesson.ReorderItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Изменить порядок уроков
+      tags:
+      - lessons
+  /courses/{id}:
+    delete:
+      description: Удаляет курс по ID. Доступно teacher и admin
+      parameters:
+      - description: ID курса
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Удалить курс
+      tags:
+      - courses
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные курса по ID. Доступно teacher и admin
+      parameters:
+      - description: ID курса
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/course.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/course.Model'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Обновить курс
+      tags:
+      - courses
+  /courses/{id}/access:
+    get:
+      description: Возвращает список пользователей, имеющих доступ к курсу. Только
+        admin
+      parameters:
+      - description: ID курса
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/course.Access'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Список доступов к курсу
+      tags:
+      - courses
+    post:
+      consumes:
+      - application/json
+      description: Предоставляет пользователю доступ к курсу. Только admin
+      parameters:
+      - description: ID курса
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: ID пользователя
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/course.GrantAccessInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/course.Access'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Выдать доступ к курсу
+      tags:
+      - courses
+  /courses/{id}/access/{userId}:
+    delete:
+      description: Отзывает доступ пользователя к курсу. Только admin
+      parameters:
+      - description: ID курса
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: ID пользователя
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Отозвать доступ к курсу
+      tags:
+      - courses
+  /courses/{id}/payments:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт платёж со статусом pending. Только student
+      parameters:
+      - description: ID курса
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные платежа
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/payment.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/payment.Model'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Создать платёж за курс
+      tags:
+      - payments
+  /courses/{slug}:
+    get:
+      description: Возвращает курс с уроками по slug. Для student проверяется наличие
+        доступа
+      parameters:
+      - description: Slug курса
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/course.Model'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Детали курса
+      tags:
+      - courses
   /health:
     get:
       description: Показывает, что HTTP-сервер запущен и соединение с базой данных
@@ -129,9 +1776,796 @@ paths:
       summary: Проверка состояния сервиса
       tags:
       - system
+  /lessons/{id}/questions:
+    get:
+      description: Возвращает вопросы урока для прохождения (без правильных ответов)
+      parameters:
+      - description: ID урока
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/lesson.PublicQuestion'
+            type: array
+      summary: Вопросы урока
+      tags:
+      - lessons
+  /lessons/{id}/submit:
+    post:
+      consumes:
+      - application/json
+      description: Принимает ответы на вопросы урока и возвращает результат. Только
+        student
+      parameters:
+      - description: ID урока
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Ответы на вопросы
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/lesson.SubmitInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/lesson.SubmitResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Отправить ответы на вопросы урока
+      tags:
+      - lessons
+  /lessons/{lessonId}/questions:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт вопрос с вариантами ответов для урока. Доступно teacher
+        и admin
+      parameters:
+      - description: ID урока
+        in: path
+        name: lessonId
+        required: true
+        type: integer
+      - description: Вопрос и варианты ответов
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/lesson.QuestionInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/lesson.Question'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Создать вопрос урока
+      tags:
+      - lessons
+  /lessons/{lessonId}/questions/{id}:
+    delete:
+      description: Удаляет вопрос из урока. Доступно teacher и admin
+      parameters:
+      - description: ID урока
+        in: path
+        name: lessonId
+        required: true
+        type: integer
+      - description: ID вопроса
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Удалить вопрос урока
+      tags:
+      - lessons
+    put:
+      consumes:
+      - application/json
+      description: Обновляет вопрос и варианты ответов. Доступно teacher и admin
+      parameters:
+      - description: ID урока
+        in: path
+        name: lessonId
+        required: true
+        type: integer
+      - description: ID вопроса
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Новые данные вопроса
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/lesson.QuestionInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/lesson.Question'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Обновить вопрос урока
+      tags:
+      - lessons
+  /lessons/{lessonId}/tests:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет ссылку на тест в урок. Доступно teacher и admin
+      parameters:
+      - description: ID урока
+        in: path
+        name: lessonId
+        required: true
+        type: integer
+      - description: ID теста
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/lesson.TestLinkInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/lesson.TestLink'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Привязать тест к уроку
+      tags:
+      - lessons
+  /lessons/{lessonId}/tests/{testId}:
+    delete:
+      description: Удаляет ссылку на тест из урока. Доступно teacher и admin
+      parameters:
+      - description: ID урока
+        in: path
+        name: lessonId
+        required: true
+        type: integer
+      - description: ID теста
+        in: path
+        name: testId
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Отвязать тест от урока
+      tags:
+      - lessons
+  /my/courses:
+    get:
+      description: Возвращает список курсов, к которым у текущего пользователя есть
+        доступ
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/course.Model'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Мои курсы
+      tags:
+      - courses
+  /pages:
+    get:
+      description: Возвращает список всех статических страниц
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/page.Model'
+            type: array
+      summary: Список страниц
+      tags:
+      - pages
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новую статическую страницу. Доступно teacher и admin
+      parameters:
+      - description: Данные страницы
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/page.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/page.Model'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Создать страницу
+      tags:
+      - pages
+  /pages/{id}:
+    delete:
+      description: Удаляет статическую страницу. Доступно teacher и admin
+      parameters:
+      - description: ID страницы
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Удалить страницу
+      tags:
+      - pages
+    put:
+      consumes:
+      - application/json
+      description: Обновляет статическую страницу. Доступно teacher и admin
+      parameters:
+      - description: ID страницы
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/page.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/page.Model'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Обновить страницу
+      tags:
+      - pages
+  /pages/{slug}:
+    get:
+      description: Возвращает статическую страницу по slug
+      parameters:
+      - description: Slug страницы
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/page.Model'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Детали страницы
+      tags:
+      - pages
+  /payments:
+    get:
+      description: Возвращает платежи. Student — свои, admin — все
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/payment.Model'
+            type: array
+      summary: Список платежей
+      tags:
+      - payments
+  /payments/{id}:
+    get:
+      description: Возвращает платёж по ID. Student — только свои, admin — любые
+      parameters:
+      - description: ID платежа
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/payment.Model'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Детали платежа
+      tags:
+      - payments
+  /payments/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Меняет статус платежа. При completed автоматически выдаётся доступ
+        к курсу. Только admin
+      parameters:
+      - description: ID платежа
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Новый статус
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/payment.UpdateStatusInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/payment.Model'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Обновить статус платежа
+      tags:
+      - payments
+  /results:
+    get:
+      description: Возвращает результаты прохождения тестов. Student — свои, admin
+        — все
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/test.Result'
+            type: array
+      summary: Мои результаты тестов
+      tags:
+      - tests
+  /results/{id}:
+    get:
+      description: Возвращает результат с детализацией ответов
+      parameters:
+      - description: ID результата
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/test.Result'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Детали результата теста
+      tags:
+      - tests
+  /tests:
+    get:
+      description: Возвращает список всех тестов
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/test.Model'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Список тестов
+      tags:
+      - tests
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новый тест. Доступно teacher и admin
+      parameters:
+      - description: Данные теста
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/test.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/test.Model'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Создать тест
+      tags:
+      - tests
+  /tests/{id}:
+    delete:
+      description: Удаляет тест по ID. Доступно teacher и admin
+      parameters:
+      - description: ID теста
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Удалить тест
+      tags:
+      - tests
+    get:
+      description: Возвращает тест с вопросами (без правильных ответов)
+      parameters:
+      - description: ID теста
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/test.Model'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Детали теста
+      tags:
+      - tests
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные теста. Доступно teacher и admin
+      parameters:
+      - description: ID теста
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/test.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/test.Model'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Обновить тест
+      tags:
+      - tests
+  /tests/{id}/questions:
+    get:
+      description: Возвращает вопросы теста для прохождения (без правильных ответов)
+      parameters:
+      - description: ID теста
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/test.PublicQuestion'
+            type: array
+      summary: Вопросы теста
+      tags:
+      - tests
+  /tests/{id}/results:
+    get:
+      description: Возвращает все результаты студентов по тесту. Только teacher и
+        admin
+      parameters:
+      - description: ID теста
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/test.Result'
+            type: array
+      summary: Результаты теста (для преподавателя)
+      tags:
+      - tests
+  /tests/{id}/submit:
+    post:
+      consumes:
+      - application/json
+      description: Принимает ответы на вопросы теста и возвращает результат с оценкой.
+        Только student
+      parameters:
+      - description: ID теста
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Ответы на вопросы
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/test.SubmitInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/test.Result'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Отправить ответы на тест
+      tags:
+      - tests
+  /tests/{testId}/questions:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт вопрос с вариантами ответов для теста. Доступно teacher
+        и admin
+      parameters:
+      - description: ID теста
+        in: path
+        name: testId
+        required: true
+        type: integer
+      - description: Вопрос и варианты ответов
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/test.QuestionInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/test.Question'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Создать вопрос теста
+      tags:
+      - tests
+  /tests/{testId}/questions/{id}:
+    delete:
+      description: Удаляет вопрос из теста. Доступно teacher и admin
+      parameters:
+      - description: ID теста
+        in: path
+        name: testId
+        required: true
+        type: integer
+      - description: ID вопроса
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Удалить вопрос теста
+      tags:
+      - tests
+    put:
+      consumes:
+      - application/json
+      description: Обновляет вопрос и варианты ответов. Доступно teacher и admin
+      parameters:
+      - description: ID теста
+        in: path
+        name: testId
+        required: true
+        type: integer
+      - description: ID вопроса
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Новые данные вопроса
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/test.QuestionInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/test.Question'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Обновить вопрос теста
+      tags:
+      - tests
+  /upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 'Загружает изображение или видео в хранилище. Поддерживаемые типы:
+        JPEG, PNG, WebP, MP4'
+      parameters:
+      - description: Файл для загрузки
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/storage.Object'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Загрузка файла
+      tags:
+      - upload
   /users:
     get:
-      description: Возвращает всех пользователей из базы данных.
+      description: Возвращает список всех пользователей. Только admin
       produces:
       - application/json
       responses:
@@ -145,69 +2579,51 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/user.ErrorResponse'
-      summary: Получить список пользователей
-      tags:
-      - users
-    post:
-      consumes:
-      - application/json
-      description: Создаёт нового пользователя в базе данных.
-      parameters:
-      - description: Данные пользователя
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/user.CreateInput'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/user.Model'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/user.ErrorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/user.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/user.ErrorResponse'
-      summary: Создать пользователя
+      summary: Список пользователей
       tags:
       - users
   /users/{id}:
     delete:
-      description: Удаляет пользователя по ID.
+      consumes:
+      - application/json
+      description: Удаляет пользователя. Владелец (с подтверждением пароля) или admin
       parameters:
       - description: ID пользователя
         in: path
         name: id
         required: true
         type: integer
+      - description: Пароль (только для self-delete)
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/user.DeleteInput'
       produces:
       - application/json
       responses:
         "204":
           description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/user.ErrorResponse'
-        "500":
-          description: Internal Server Error
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/user.ErrorResponse'
       summary: Удалить пользователя
       tags:
       - users
     get:
-      description: Возвращает пользователя по его идентификатору.
+      description: Возвращает данные пользователя по ID
       parameters:
       - description: ID пользователя
         in: path
@@ -221,21 +2637,21 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/user.Model'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
         "404":
           description: Not Found
           schema:
             $ref: '#/definitions/user.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/user.ErrorResponse'
-      summary: Получить пользователя по ID
+      summary: Получить пользователя
       tags:
       - users
     put:
       consumes:
       - application/json
-      description: Обновляет поля пользователя по ID.
+      description: Обновляет данные пользователя. Владелец или admin
       parameters:
       - description: ID пользователя
         in: path
@@ -244,7 +2660,7 @@ paths:
         type: integer
       - description: Данные для обновления
         in: body
-        name: payload
+        name: input
         required: true
         schema:
           $ref: '#/definitions/user.UpdateInput'
@@ -267,38 +2683,7 @@ paths:
           description: Conflict
           schema:
             $ref: '#/definitions/user.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/user.ErrorResponse'
       summary: Обновить пользователя
-      tags:
-      - users
-  /users/by-email/{email}:
-    get:
-      description: Возвращает пользователя по его email.
-      parameters:
-      - description: Email пользователя
-        in: path
-        name: email
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/user.Model'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/user.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/user.ErrorResponse'
-      summary: Получить пользователя по email
       tags:
       - users
 swagger: "2.0"

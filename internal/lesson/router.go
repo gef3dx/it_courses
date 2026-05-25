@@ -36,12 +36,29 @@ func paramID(c fiber.Ctx, key, message string) (int64, error) {
 	return id, nil
 }
 
+// @Summary Список уроков курса
+// @Description Возвращает все уроки указанного курса
+// @Tags lessons
+// @Produce json
+// @Param courseId path int true "ID курса"
+// @Success 200 {array} Model
+// @Failure 500 {string} error
+// @Router /courses/{courseId}/lessons [get]
 func (h *handler) listByCourse(c fiber.Ctx) error {
 	courseID, err := paramID(c,"courseId","invalid course id"); if err != nil { return nil }
 	items, err := h.service.ListByCourse(c.Context(), courseID)
 	if err != nil { return c.Status(500).JSON(fiber.Map{"error":"failed to fetch lessons"}) }
 	return c.JSON(items)
 }
+// @Summary Детали урока
+// @Description Возвращает урок с контентом, медиа и ссылками на тесты
+// @Tags lessons
+// @Produce json
+// @Param courseId path int true "ID курса"
+// @Param id path int true "ID урока"
+// @Success 200 {object} Model
+// @Failure 404 {string} error
+// @Router /courses/{courseId}/lessons/{id} [get]
 func (h *handler) getByID(c fiber.Ctx) error {
 	courseID, err := paramID(c,"courseId","invalid course id"); if err != nil { return nil }
 	id, err := paramID(c,"id","invalid lesson id"); if err != nil { return nil }
@@ -52,6 +69,17 @@ func (h *handler) getByID(c fiber.Ctx) error {
 	}
 	return c.JSON(item)
 }
+// @Summary Создать урок
+// @Description Создаёт новый урок в курсе. Доступно teacher и admin
+// @Tags lessons
+// @Accept json
+// @Produce json
+// @Param courseId path int true "ID курса"
+// @Param input body CreateInput true "Данные урока"
+// @Success 201 {object} Model
+// @Failure 400 {string} error
+// @Failure 409 {string} error
+// @Router /courses/{courseId}/lessons [post]
 func (h *handler) create(c fiber.Ctx) error {
 	courseID, err := paramID(c,"courseId","invalid course id"); if err != nil { return nil }
 	var input CreateInput
@@ -64,6 +92,19 @@ func (h *handler) create(c fiber.Ctx) error {
 	}
 	return c.Status(201).JSON(item)
 }
+// @Summary Обновить урок
+// @Description Обновляет данные урока. Доступно teacher и admin
+// @Tags lessons
+// @Accept json
+// @Produce json
+// @Param courseId path int true "ID курса"
+// @Param id path int true "ID урока"
+// @Param input body UpdateInput true "Данные для обновления"
+// @Success 200 {object} Model
+// @Failure 400 {string} error
+// @Failure 404 {string} error
+// @Failure 409 {string} error
+// @Router /courses/{courseId}/lessons/{id} [put]
 func (h *handler) update(c fiber.Ctx) error {
 	courseID, err := paramID(c,"courseId","invalid course id"); if err != nil { return nil }
 	id, err := paramID(c,"id","invalid lesson id"); if err != nil { return nil }
@@ -77,6 +118,14 @@ func (h *handler) update(c fiber.Ctx) error {
 	}
 	return c.JSON(item)
 }
+// @Summary Удалить урок
+// @Description Удаляет урок из курса. Доступно teacher и admin
+// @Tags lessons
+// @Param courseId path int true "ID курса"
+// @Param id path int true "ID урока"
+// @Success 204 "No Content"
+// @Failure 404 {string} error
+// @Router /courses/{courseId}/lessons/{id} [delete]
 func (h *handler) delete(c fiber.Ctx) error {
 	courseID, err := paramID(c,"courseId","invalid course id"); if err != nil { return nil }
 	id, err := paramID(c,"id","invalid lesson id"); if err != nil { return nil }
@@ -86,6 +135,16 @@ func (h *handler) delete(c fiber.Ctx) error {
 	}
 	return c.SendStatus(204)
 }
+// @Summary Изменить порядок уроков
+// @Description Меняет порядок уроков в курсе. Доступно teacher и admin
+// @Tags lessons
+// @Accept json
+// @Produce json
+// @Param courseId path int true "ID курса"
+// @Param input body []ReorderItem true "Массив ID и sort_order"
+// @Success 200 {string} error
+// @Failure 400 {string} error
+// @Router /courses/{courseId}/lessons/reorder [patch]
 func (h *handler) reorder(c fiber.Ctx) error {
 	courseID, err := paramID(c,"courseId","invalid course id"); if err != nil { return nil }
 	var input []ReorderItem
@@ -93,12 +152,29 @@ func (h *handler) reorder(c fiber.Ctx) error {
 	if err := h.service.Reorder(c.Context(), courseID, input); err != nil { return c.Status(400).JSON(fiber.Map{"error":err.Error()}) }
 	return c.JSON(fiber.Map{"message":"reordered"})
 }
+// @Summary Вопросы урока
+// @Description Возвращает вопросы урока для прохождения (без правильных ответов)
+// @Tags lessons
+// @Produce json
+// @Param id path int true "ID урока"
+// @Success 200 {array} PublicQuestion
+// @Router /lessons/{id}/questions [get]
 func (h *handler) listQuestions(c fiber.Ctx) error {
 	id, err := paramID(c,"id","invalid lesson id"); if err != nil { return nil }
 	items, err := h.service.ListPublicQuestions(c.Context(), id)
 	if err != nil { return c.Status(500).JSON(fiber.Map{"error":"failed to fetch questions"}) }
 	return c.JSON(items)
 }
+// @Summary Создать вопрос урока
+// @Description Создаёт вопрос с вариантами ответов для урока. Доступно teacher и admin
+// @Tags lessons
+// @Accept json
+// @Produce json
+// @Param lessonId path int true "ID урока"
+// @Param input body QuestionInput true "Вопрос и варианты ответов"
+// @Success 201 {object} Question
+// @Failure 400 {string} error
+// @Router /lessons/{lessonId}/questions [post]
 func (h *handler) createQuestion(c fiber.Ctx) error {
 	lessonID, err := paramID(c,"lessonId","invalid lesson id"); if err != nil { return nil }
 	var input QuestionInput
@@ -108,6 +184,18 @@ func (h *handler) createQuestion(c fiber.Ctx) error {
 	if err != nil { return c.Status(400).JSON(fiber.Map{"error":err.Error()}) }
 	return c.Status(201).JSON(item)
 }
+// @Summary Обновить вопрос урока
+// @Description Обновляет вопрос и варианты ответов. Доступно teacher и admin
+// @Tags lessons
+// @Accept json
+// @Produce json
+// @Param lessonId path int true "ID урока"
+// @Param id path int true "ID вопроса"
+// @Param input body QuestionInput true "Новые данные вопроса"
+// @Success 200 {object} Question
+// @Failure 400 {string} error
+// @Failure 404 {string} error
+// @Router /lessons/{lessonId}/questions/{id} [put]
 func (h *handler) updateQuestion(c fiber.Ctx) error {
 	lessonID, err := paramID(c,"lessonId","invalid lesson id"); if err != nil { return nil }
 	id, err := paramID(c,"id","invalid question id"); if err != nil { return nil }
@@ -120,6 +208,14 @@ func (h *handler) updateQuestion(c fiber.Ctx) error {
 	}
 	return c.JSON(item)
 }
+// @Summary Удалить вопрос урока
+// @Description Удаляет вопрос из урока. Доступно teacher и admin
+// @Tags lessons
+// @Param lessonId path int true "ID урока"
+// @Param id path int true "ID вопроса"
+// @Success 204 "No Content"
+// @Failure 404 {string} error
+// @Router /lessons/{lessonId}/questions/{id} [delete]
 func (h *handler) deleteQuestion(c fiber.Ctx) error {
 	lessonID, err := paramID(c,"lessonId","invalid lesson id"); if err != nil { return nil }
 	id, err := paramID(c,"id","invalid question id"); if err != nil { return nil }
@@ -129,6 +225,16 @@ func (h *handler) deleteQuestion(c fiber.Ctx) error {
 	}
 	return c.SendStatus(204)
 }
+// @Summary Отправить ответы на вопросы урока
+// @Description Принимает ответы на вопросы урока и возвращает результат. Только student
+// @Tags lessons
+// @Accept json
+// @Produce json
+// @Param id path int true "ID урока"
+// @Param input body SubmitInput true "Ответы на вопросы"
+// @Success 200 {object} SubmitResponse
+// @Failure 400 {string} error
+// @Router /lessons/{id}/submit [post]
 func (h *handler) submit(c fiber.Ctx) error {
 	id, err := paramID(c,"id","invalid lesson id"); if err != nil { return nil }
 	var input SubmitInput
@@ -137,6 +243,16 @@ func (h *handler) submit(c fiber.Ctx) error {
 	if err != nil { return c.Status(400).JSON(fiber.Map{"error":err.Error()}) }
 	return c.JSON(result)
 }
+// @Summary Привязать тест к уроку
+// @Description Добавляет ссылку на тест в урок. Доступно teacher и admin
+// @Tags lessons
+// @Accept json
+// @Produce json
+// @Param lessonId path int true "ID урока"
+// @Param input body TestLinkInput true "ID теста"
+// @Success 201 {object} TestLink
+// @Failure 400 {string} error
+// @Router /lessons/{lessonId}/tests [post]
 func (h *handler) linkTest(c fiber.Ctx) error {
 	lessonID, err := paramID(c,"lessonId","invalid lesson id"); if err != nil { return nil }
 	var input TestLinkInput
@@ -145,6 +261,14 @@ func (h *handler) linkTest(c fiber.Ctx) error {
 	if err != nil { return c.Status(400).JSON(fiber.Map{"error":err.Error()}) }
 	return c.Status(201).JSON(item)
 }
+// @Summary Отвязать тест от урока
+// @Description Удаляет ссылку на тест из урока. Доступно teacher и admin
+// @Tags lessons
+// @Param lessonId path int true "ID урока"
+// @Param testId path int true "ID теста"
+// @Success 204 "No Content"
+// @Failure 404 {string} error
+// @Router /lessons/{lessonId}/tests/{testId} [delete]
 func (h *handler) unlinkTest(c fiber.Ctx) error {
 	lessonID, err := paramID(c,"lessonId","invalid lesson id"); if err != nil { return nil }
 	testID, err := paramID(c,"testId","invalid test id"); if err != nil { return nil }

@@ -27,6 +27,18 @@ func RegisterRoutes(app *fiber.App, service *Service, authService AuthContext) {
 	app.Patch("/payments/:id/status", authService.Required("admin"), h.updateStatus)
 }
 
+// @Summary Создать платёж за курс
+// @Description Создаёт платёж со статусом pending. Только student
+// @Tags payments
+// @Accept json
+// @Produce json
+// @Param id path int true "ID курса"
+// @Param input body CreateInput true "Данные платежа"
+// @Success 201 {object} Model
+// @Failure 400 {string} error
+// @Failure 404 {string} error
+// @Failure 409 {string} error
+// @Router /courses/{id}/payments [post]
 func (h *handler) create(c fiber.Ctx) error {
 	courseID, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {
@@ -54,6 +66,12 @@ func (h *handler) create(c fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(item)
 }
 
+// @Summary Список платежей
+// @Description Возвращает платежи. Student — свои, admin — все
+// @Tags payments
+// @Produce json
+// @Success 200 {array} Model
+// @Router /payments [get]
 func (h *handler) list(c fiber.Ctx) error {
 	role, _ := c.Locals("role").(string)
 	userID, _ := c.Locals("userID").(int64)
@@ -64,6 +82,15 @@ func (h *handler) list(c fiber.Ctx) error {
 	return c.JSON(items)
 }
 
+// @Summary Детали платежа
+// @Description Возвращает платёж по ID. Student — только свои, admin — любые
+// @Tags payments
+// @Produce json
+// @Param id path int true "ID платежа"
+// @Success 200 {object} Model
+// @Failure 403 {string} error
+// @Failure 404 {string} error
+// @Router /payments/{id} [get]
 func (h *handler) getByID(c fiber.Ctx) error {
 	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {
@@ -86,6 +113,18 @@ func (h *handler) getByID(c fiber.Ctx) error {
 	return c.JSON(item)
 }
 
+// @Summary Обновить статус платежа
+// @Description Меняет статус платежа. При completed автоматически выдаётся доступ к курсу. Только admin
+// @Tags payments
+// @Accept json
+// @Produce json
+// @Param id path int true "ID платежа"
+// @Param input body UpdateStatusInput true "Новый статус"
+// @Success 200 {object} Model
+// @Failure 400 {string} error
+// @Failure 404 {string} error
+// @Failure 409 {string} error
+// @Router /payments/{id}/status [patch]
 func (h *handler) updateStatus(c fiber.Ctx) error {
 	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {

@@ -22,6 +22,13 @@ func RegisterRoutes(app *fiber.App, service *Service, authRequired fiber.Handler
 	users.Delete("/:id", ownerOrAdmin, handler.delete)
 }
 
+// @Summary Список пользователей
+// @Description Возвращает список всех пользователей. Только admin
+// @Tags users
+// @Produce json
+// @Success 200 {array} Model
+// @Failure 500 {object} ErrorResponse
+// @Router /users [get]
 func (h *userHandler) list(c fiber.Ctx) error {
 	users, err := h.service.List(c.Context())
 	if err != nil {
@@ -32,6 +39,15 @@ func (h *userHandler) list(c fiber.Ctx) error {
 	return c.JSON(users)
 }
 
+// @Summary Получить пользователя
+// @Description Возвращает данные пользователя по ID
+// @Tags users
+// @Produce json
+// @Param id path int true "ID пользователя"
+// @Success 200 {object} Model
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Router /users/{id} [get]
 func (h *userHandler) getByID(c fiber.Ctx) error {
 	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {
@@ -51,6 +67,18 @@ func (h *userHandler) getByID(c fiber.Ctx) error {
 	return c.JSON(model)
 }
 
+// @Summary Обновить пользователя
+// @Description Обновляет данные пользователя. Владелец или admin
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path int true "ID пользователя"
+// @Param input body UpdateInput true "Данные для обновления"
+// @Success 200 {object} Model
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
+// @Router /users/{id} [put]
 func (h *userHandler) update(c fiber.Ctx) error {
 	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {
@@ -80,6 +108,19 @@ func (h *userHandler) update(c fiber.Ctx) error {
 	return c.JSON(model)
 }
 
+// @Summary Удалить пользователя
+// @Description Удаляет пользователя. Владелец (с подтверждением пароля) или admin
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path int true "ID пользователя"
+// @Param input body DeleteInput false "Пароль (только для self-delete)"
+// @Success 204 "No Content"
+// @Failure 400 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
+// @Router /users/{id} [delete]
 func (h *userHandler) delete(c fiber.Ctx) error {
 	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 	if err != nil {
