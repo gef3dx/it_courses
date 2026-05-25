@@ -69,10 +69,33 @@
 - PATCH `/payments/:id/status` → `completed` → атомарно создать CourseAccess
 - Статусы: pending → completed/failed, completed → refunded
 
+### Email verification
+- При регистрации: `email_verified_at = NULL`, генерировать UUID токен
+- POST `/auth/verify-email` — подтверждает email по токену
+- Login только при `email_verified_at IS NOT NULL`
+- Интерфейс `EmailSender` для отправки (не реализовывать отправку, только интерфейс)
+
+### Password recovery
+- POST `/auth/forgot-password` → создаёт token (expires_at = now()+1h) → EmailSender
+- POST `/auth/reset-password` → проверяет token → обновляет password_hash → удаляет token
+
+### Self-edit и self-delete
+- PUT `/users/:id` — middleware `OwnerOrAdmin` (user_id из JWT == :id или role == admin)
+- DELETE `/users/:id` — self-delete требует `{password}` в body; admin без пароля
+
 ### Slug
 - У Course, Lesson, Page, Article slug обязателен и уникален
 - Если slug не указан при создании — генерировать из title (transliteration + kebab-case)
 - При обновлении slug не менять (или менять только явно)
+
+---
+
+### Горутины и утечки
+- Все блокирующие операции через `context.Context`
+- `defer` для закрытия ресурсов (rows, body, timer, ticker)
+- Не сохранять Fiber `c` в горутинах
+- Каналы с явным жизненным циклом (отправитель/получатель)
+- recover в каждой горутине
 
 ---
 
@@ -83,3 +106,4 @@
 - [ ] Новые маршруты зарегистрированы и защищены нужными middleware
 - [ ] SQL миграция написана ( idempotent, с IF NOT EXISTS)
 - [ ] DI в bootstrap/app.go обновлён
+- [ ] Нет потенциальных утечек горутин (context, defer, recover)

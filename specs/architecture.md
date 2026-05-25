@@ -214,8 +214,28 @@ internal/<domain>/
 
 - JWT (access token + refresh token)
 - Middleware: `AuthRequired(roles...)` проверяет токен и роль
-- Пароль хранится как bcrypt hash (в существующей таблице users добавляется `password_hash`)
+- Login доступен только при `email_verified_at IS NOT NULL`
+- Пароль хранится как bcrypt hash
 - Поле `role` в users: student | teacher | admin
+
+### Дополнительные поля users
+
+| Колонка | Тип | Примечание |
+|---------|-----|------------|
+| password_hash | varchar(255) NOT NULL | bcrypt hash |
+| role | varchar(20) NOT NULL DEFAULT 'student' | student / teacher / admin |
+| email_verified_at | timestamptz | NULL — email не подтверждён |
+| email_verification_token | varchar(255) | UUID токен для подтверждения |
+
+### Password Reset Tokens
+
+| Колонка | Тип | Примечание |
+|---------|-----|------------|
+| id | int64 PK | |
+| user_id | int64 FK -> users(id) ON DELETE CASCADE | |
+| token | varchar(255) NOT NULL | UUID |
+| expires_at | timestamptz NOT NULL | now() + 1h |
+| created_at | timestamptz | |
 
 ## Контроль доступа к курсам
 

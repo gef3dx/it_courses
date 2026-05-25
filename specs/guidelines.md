@@ -40,6 +40,43 @@ internal/<domain>/
 - User ID извлекается из токена и пробрасывается через `c.Locals("userID")`
 - Роль извлекается через `c.Locals("role")`
 - Ошибки: 401 Unauthorized (нет/невалидный токен), 403 Forbidden (не та роль)
+- Login разрешён только при подтверждённом email (проверка в Service)
+- Middleware `OwnerOrAdmin` — проверяет, что `user_id` из JWT совпадает с `:id` в URL, или роль admin. Используется для PUT/DELETE `/users/:id`
+
+## Email verification
+
+- При регистрации: `email_verified_at = NULL`, генерируется UUID токен
+- POST `/auth/verify-email`: найти пользователя по токену → `email_verified_at = now()`, очистить токен
+- POST `/auth/resend-verification`: найти по email из JWT → новый токен → отправить письмо
+- Email-отправка через интерфейс `EmailSender` (реализация — внешний сервис)
+- Ошибка: 403 Forbidden при попытке входа с неподтверждённым email
+
+## Password recovery
+
+- POST `/auth/forgot-password`: найти пользователя по email, создать запись в `password_reset_tokens` (UUID + expires_at = now()+1h), отправить письмо
+- POST `/auth/reset-password`: найти токен → проверить `expires_at > now()` → обновить password_hash → удалить токен
+- После сброса все JWT токены пользователя становятся невалидными (increment `token_version` в users, если добавили)
+
+## Self-delete
+
+- DELETE `/users/:id`:
+  - Если `user_id` из JWT == `:id` (self-delete): требуется `{password}` в body для подтверждения
+  - Если role == admin: пароль не требуется
+  - Нельзя удалить самого последнего admin
+- При удалении пользователя каскадно удаляются его связи (CourseAccess, Payments, Results, etc.)
+
+## Горутины и утечки памяти
+
+- **context.Context** — все блокирующие операции (БД, HTTP-вызовы, таймеры) должны принимать и соблюдать `context.Context`. Никаких пустых `context.Background()` вне main/bootstrap
+- **Graceful shutdown** — при завершении приложения дожидаться завершения всех горутин через `sync.WaitGroup` или `errgroup.Group`
+- **Таймеры и тикеры** — всегда использовать `defer timer.Stop()` / `defer ticker.Stop()` для освобождения ресурсов
+- **HTTP-клиент** — переиспользовать один `http.Client` с настроенным `Timeout`; всегда закрывать `resp.Body.Close()`
+- **Каналы** — каналы должны иметь явного отправителя и получателя; предотвращать запись в закрытый канал через `sync.Once` или `select` с `done`-каналом
+- **Goroutine leak detection** — в тестах использовать `runtime.NumGoroutine()` до и после теста (разница не более 1-2 горутин)
+- **Пул соединений БД** — настроить `SetMaxOpenConns`, `SetMaxIdleConns`, `SetConnMaxLifetime` в соответствии с нагрузкой
+- **recover** — каждая запущенная горутина должна иметь `defer recover()` для предотвращения паники всего приложения
+- **Fiber контекст** — не сохранять `c.Context()` или `c` в горутинах вне хэндлера (контекст переиспользуется Fiber)
+- **Row iteration** — всегда закрывать `rows` после итерации по GORM raw rows
 
 ## Работа с БД
 

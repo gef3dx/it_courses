@@ -26,7 +26,7 @@ go run ./cmd/api               # API сервер (порт 3000)
 
 | Сущность | Описание |
 |----------|----------|
-| **User** | Пользователь (student, teacher, admin). Расширение существующей модели: +password_hash, +role |
+| **User** | Пользователь (student, teacher, admin). Расширение существующей модели: +password_hash, +role, +email_verified_at, +email_verification_token |
 | **Auth** | Регистрация, логин, JWT-токены |
 | **Test** | Тест/опросник: заголовок, описание, автор (teacher) |
 | **Question** | Вопрос теста: текст, решение/объяснение, автор, порядок |
@@ -49,17 +49,21 @@ go run ./cmd/api               # API сервер (порт 3000)
 ### Auth
 | Метод | Путь | Описание |
 |-------|------|----------|
-| POST | `/auth/register` | Регистрация |
-| POST | `/auth/login` | Вход, получение JWT |
+| POST | `/auth/register` | Регистрация (создаёт пользователя со статусом email не подтверждён) |
+| POST | `/auth/verify-email` | Подтверждение email по токену `{token}` |
+| POST | `/auth/resend-verification` | Повторная отправка письма подтверждения |
+| POST | `/auth/login` | Вход, получение JWT (только при подтверждённом email) |
 | POST | `/auth/refresh` | Обновление токена |
+| POST | `/auth/forgot-password` | Запрос на сброс пароля `{email}` |
+| POST | `/auth/reset-password` | Сброс пароля `{token, new_password}` |
 
 ### Users
 | Метод | Путь | Роль | Описание |
 |-------|------|------|----------|
 | GET | `/users` | admin | Список пользователей |
 | GET | `/users/:id` | any | Получить пользователя |
-| PUT | `/users/:id` | owner/admin | Обновить профиль |
-| DELETE | `/users/:id` | admin | Удалить пользователя |
+| PUT | `/users/:id` | owner/admin | Обновить профиль (владелец или admin) |
+| DELETE | `/users/:id` | owner/admin | Удалить аккаунт (владелец или admin). При self-delete — проверка пароля |
 
 ### Tests
 | Метод | Путь | Роль | Описание |
@@ -184,6 +188,29 @@ go run ./cmd/api               # API сервер (порт 3000)
 2. Администратор подтверждает оплату (PATCH `/payments/:id/status` → `completed`)
 3. При подтверждении автоматически создаётся запись CourseAccess
 4. Варианты статусов: `pending`, `completed`, `failed`, `refunded`
+
+## Подтверждение email
+
+- При регистрации пользователь получает статус `email не подтверждён`
+- В таблице users: `email_verified_at` = NULL, `email_verification_token` = UUID
+- Email-сервис отправляет письмо со ссылкой `/auth/verify-email?token=...`
+- POST `/auth/verify-email` — устанавливает `email_verified_at = now()`, очищает токен
+- POST `/auth/resend-verification` — генерирует новый токен, отправляет письмо заново
+- Login разрешён только при подтверждённом email (403 если не подтверждён)
+- Admin может подтвердить email вручную
+
+## Восстановление пароля
+
+1. POST `/auth/forgot-password` — принимает `{email}`, создаёт токен в таблице `password_reset_tokens`, отправляет письмо
+2. POST `/auth/reset-password` — принимает `{token, new_password}`, проверяет токен (не истёк), обновляет пароль, удаляет токен
+3. Токен истекает через 1 час
+
+## Управление аккаунтом
+
+- Пользователь может редактировать только свой профиль (сверка `user_id` из JWT с `:id` в URL)
+- Admin может редактировать любой профиль
+- Пользователь может удалить свой аккаунт. Для self-delete требуется подтверждение: `{password}` в body
+- Admin может удалить любой аккаунт без подтверждения пароля
 
 ## Оценка теста
 
