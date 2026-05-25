@@ -1,0 +1,304 @@
+basePath: /
+definitions:
+  bootstrap.HealthResponse:
+    properties:
+      database:
+        type: string
+      status:
+        type: string
+    type: object
+  bootstrap.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  user.CreateInput:
+    properties:
+      email:
+        example: ivan@example.com
+        type: string
+      first_name:
+        example: Ivanov
+        maxLength: 100
+        minLength: 2
+        type: string
+      last_name:
+        example: Ivanovich
+        maxLength: 100
+        minLength: 2
+        type: string
+      name:
+        example: Ivan
+        maxLength: 100
+        minLength: 2
+        type: string
+      phone:
+        example: "9094445566"
+        maxLength: 20
+        minLength: 10
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - name
+    - phone
+    type: object
+  user.ErrorResponse:
+    properties:
+      error:
+        example: email is required
+        type: string
+    type: object
+  user.Model:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  user.UpdateInput:
+    properties:
+      email:
+        example: ivan@example.com
+        type: string
+      first_name:
+        example: Ivanov
+        maxLength: 100
+        minLength: 2
+        type: string
+      last_name:
+        example: Ivanovich
+        maxLength: 100
+        minLength: 2
+        type: string
+      name:
+        example: Ivan
+        maxLength: 100
+        minLength: 2
+        type: string
+      phone:
+        example: "9094445566"
+        maxLength: 20
+        minLength: 10
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: Документация API сервиса WorkingHub.
+  title: API WorkingHub
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: Возвращает простой ответ для быстрой проверки запуска HTTP-сервера.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/bootstrap.MessageResponse'
+      summary: Корневой маршрут
+      tags:
+      - system
+  /health:
+    get:
+      description: Показывает, что HTTP-сервер запущен и соединение с базой данных
+        установлено.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/bootstrap.HealthResponse'
+      summary: Проверка состояния сервиса
+      tags:
+      - system
+  /users:
+    get:
+      description: Возвращает всех пользователей из базы данных.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/user.Model'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      summary: Получить список пользователей
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового пользователя в базе данных.
+      parameters:
+      - description: Данные пользователя
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.Model'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      summary: Создать пользователя
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      description: Удаляет пользователя по ID.
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      summary: Удалить пользователя
+      tags:
+      - users
+    get:
+      description: Возвращает пользователя по его идентификатору.
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.Model'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      summary: Получить пользователя по ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Обновляет поля пользователя по ID.
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/user.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.Model'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      summary: Обновить пользователя
+      tags:
+      - users
+  /users/by-email/{email}:
+    get:
+      description: Возвращает пользователя по его email.
+      parameters:
+      - description: Email пользователя
+        in: path
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.Model'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      summary: Получить пользователя по email
+      tags:
+      - users
+swagger: "2.0"
