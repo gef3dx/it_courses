@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
-	"golang.org/x/crypto/bcrypt"
 	postgresdriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -146,29 +145,6 @@ func readBody(t *testing.T, resp *http.Response) []byte {
 	return buf.Bytes()
 }
 
-func seedUser(t *testing.T, svc *user.Service, overrides ...user.CreateInput) *user.Model {
-	t.Helper()
-
-	input := user.CreateInput{
-		Email:     fmt.Sprintf("seed-%d@example.com", time.Now().UnixNano()),
-		Phone:     "9094445566",
-		Name:      "Seed",
-		FirstName: "SeedFirst",
-		LastName:  "SeedLast",
-		Role:      user.RoleStudent,
-	}
-	if len(overrides) > 0 {
-		input = overrides[0]
-	}
-
-	created, err := svc.Create(context.Background(), input)
-	if err != nil {
-		t.Fatalf("seed user failed: %v", err)
-	}
-
-	return created
-}
-
 func registerAndLogin(t *testing.T, app *fiber.App, mailer *testMailer, email string) auth.AuthResponse {
 	t.Helper()
 
@@ -230,43 +206,6 @@ func registerAndLogin(t *testing.T, app *fiber.App, mailer *testMailer, email st
 	var authResponse auth.AuthResponse
 	mustUnmarshal(t, readBody(t, resp), &authResponse)
 	return authResponse
-}
-
-func seedVerifiedUser(t *testing.T, userSvc *user.Service, role string, email string, password string) *user.Model {
-	t.Helper()
-
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		t.Fatalf("hash password failed: %v", err)
-	}
-
-	now := time.Now().UTC()
-	created, err := userSvc.Create(context.Background(), user.CreateInput{
-		Email:           email,
-		Phone:           "9094445566",
-		Name:            "Seed",
-		FirstName:       "Seed",
-		LastName:        "User",
-		PasswordHash:    string(hash),
-		Role:            role,
-		EmailVerifiedAt: &now,
-	})
-	if err != nil {
-		t.Fatalf("seed verified user failed: %v", err)
-	}
-
-	return created
-}
-
-func issueAccessToken(t *testing.T, authSvc *auth.Service, model *user.Model) string {
-	t.Helper()
-
-	tokens, err := authSvc.IssueTokens(model)
-	if err != nil {
-		t.Fatalf("issue tokens failed: %v", err)
-	}
-
-	return tokens.AccessToken
 }
 
 var validationCases = []struct {

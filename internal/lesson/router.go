@@ -29,10 +29,9 @@ func RegisterRoutes(app *fiber.App, service *Service, authService AuthContext) {
 }
 
 func paramID(c fiber.Ctx, key, message string) (int64, error) {
-	id, err := strconv.ParseInt(c.Params(key),10,64)
+	id, err := strconv.ParseInt(c.Params(key), 10, 64)
 	if err != nil {
-		c.Status(400).JSON(fiber.Map{"error":message})
-		return 0, err
+		return 0, c.Status(400).JSON(fiber.Map{"error": message})
 	}
 	return id, nil
 }

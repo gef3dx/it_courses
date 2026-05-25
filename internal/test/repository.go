@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
@@ -175,9 +174,4 @@ func (r *Repository) ListResultsByTest(ctx context.Context, testID int64) ([]Res
 	var items []Result
 	err := r.db.WithContext(ctx).Where("test_id = ?", testID).Order("id DESC").Find(&items).Error
 	return items, err
-}
-
-func unique(err error) bool {
-	var pgErr *pgconn.PgError
-	return errors.As(err, &pgErr) && pgErr.Code == "23505"
 }
