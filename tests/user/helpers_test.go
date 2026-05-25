@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -40,16 +42,17 @@ func getTestDB(t *testing.T) *gorm.DB {
 	dbUser := getEnv("POSTGRES_USER", "it_user")
 	password := getEnv("POSTGRES_PASSWORD", "it_password")
 	sslmode := getEnv("POSTGRES_SSLMODE", "disable")
+	schema := testSchemaName(t)
 
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+	adminDSN := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		host, port, dbUser, password, dbName, sslmode)
 
-	db, err := gorm.Open(postgresdriver.Open(dsn), &gorm.Config{})
+	adminDB, err := gorm.Open(postgresdriver.Open(adminDSN), &gorm.Config{})
 	if err != nil {
 		t.Skipf("test database is unavailable: %v", err)
 	}
 
-	sqlDB, err := db.DB()
+	sqlDB, err := adminDB.DB()
 	if err != nil {
 		t.Fatalf("failed to get sql db: %v", err)
 	}
@@ -60,6 +63,18 @@ func getTestDB(t *testing.T) *gorm.DB {
 
 	if err := sqlDB.Ping(); err != nil {
 		t.Skipf("test database is unavailable: %v", err)
+	}
+
+	if err := adminDB.Exec("CREATE SCHEMA IF NOT EXISTS " + schema).Error; err != nil {
+		t.Fatalf("failed to create test schema: %v", err)
+	}
+
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s search_path=%s",
+		host, port, dbUser, password, dbName, sslmode, schema)
+
+	db, err := gorm.Open(postgresdriver.Open(dsn), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("failed to connect to schema-scoped test database: %v", err)
 	}
 
 	if err := postgres.ApplyMigrations(db, config.MigrationsConfig{AutoApply: true, Path: "../../migrations"}); err != nil {
@@ -235,4 +250,28 @@ func getEnv(key, fallback string) string {
 		return val
 	}
 	return fallback
+}
+
+func testSchemaName(t *testing.T) string {
+	t.Helper()
+
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("failed to get working directory: %v", err)
+	}
+
+	base := filepath.Base(wd)
+	base = strings.ToLower(base)
+
+	var builder strings.Builder
+	builder.WriteString("test_")
+	for _, ch := range base {
+		if (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') {
+			builder.WriteRune(ch)
+			continue
+		}
+		builder.WriteByte('_')
+	}
+
+	return builder.String()
 }
