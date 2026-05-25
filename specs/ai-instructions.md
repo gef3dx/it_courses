@@ -47,8 +47,30 @@
 - Принимает массив `[{question_id, selected_option_id}]`
 - Возвращает score, max_score, grade, правильные/неправильные ответы
 
+### Submit вопросов урока
+- Атомарная операция
+- Принимает массив `[{question_id, selected_option_id}]`
+- Возвращает score, max_score, grade + правильные ответы сразу
+
+### Курсы и уроки
+- Course 1→N Lesson (sort_order)
+- Lesson может содержать: контент, медиа, тесты (lesson_test_links), вопросы (questions с lesson_id)
+- Slug у курса и урока уникален
+- Reorder: PATCH /courses/:courseId/lessons/reorder с массивом `[{id, sort_order}]`
+
+### Доступ к курсам
+- Student видит только курсы c доступом (check course_accesses)
+- Teacher/admin — все курсы без проверки
+- Middleware `CourseAccess` для защиты маршрутов курсов
+- Доступ выдаётся: admin вручную или автоматически после оплаты
+
+### Платежи
+- POST `/courses/:id/payments` → status `pending`
+- PATCH `/payments/:id/status` → `completed` → атомарно создать CourseAccess
+- Статусы: pending → completed/failed, completed → refunded
+
 ### Slug
-- У Pages и Articles slug обязателен и уникален
+- У Course, Lesson, Page, Article slug обязателен и уникален
 - Если slug не указан при создании — генерировать из title (transliteration + kebab-case)
 - При обновлении slug не менять (или менять только явно)
 
