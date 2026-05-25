@@ -93,12 +93,6 @@ func NewApp(cfg *config.Config) (*App, error) {
 		AllowHeaders: []string{"Content-Type", "Authorization"},
 	}))
 
-	// Подключаем Swagger UI для просмотра сгенерированной документации API.
-	app.Get("/swagger/*", swagger.HandlerDefault)
-
-	app.Get("/", rootHandler)
-	app.Get("/health", healthHandler)
-
 	userRepository := user.NewRepository(pgStorage.DB)
 	authRepository := auth.NewRepository(pgStorage.DB, userRepository)
 	authService := auth.NewService(authRepository, mailer.NoopSender{}, cfg.Auth)
@@ -118,6 +112,10 @@ func NewApp(cfg *config.Config) (*App, error) {
 	storageService := storage.New(cfg.Storage.BaseURL)
 	publisher := queue.NoopPublisher{}
 	_ = cache.NewCache()
+
+	app.Get("/", rootHandler)
+	app.Get("/health", healthHandler)
+	app.Get("/swagger/*", authService.Required(), swagger.HandlerDefault)
 
 	auth.RegisterRoutes(app, authService)
 	user.RegisterRoutes(

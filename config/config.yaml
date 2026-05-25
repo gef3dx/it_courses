@@ -15,9 +15,9 @@ storage:
 postgres:
   host: localhost
   port: 5432
-  database: wh
-  user: wh_user
-  password: wh_password
+  database: it_courses
+  user: it_user
+  password: it_password
 
   # disable | require | verify-ca | verify-full
 
