@@ -11,7 +11,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/gef3dx/api_workinghub/internal/config"
+	"github.com/gef3dx/it_courses/internal/config"
 )
 
 // ApplyMigrations применяет все новые SQL-файлы из каталога миграций по порядку.

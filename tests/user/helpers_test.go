@@ -13,7 +13,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"github.com/gef3dx/api_workinghub/internal/user"
+	"github.com/gef3dx/it_courses/internal/user"
 )
 
 func getTestDB(t *testing.T) *gorm.DB {

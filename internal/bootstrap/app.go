@@ -8,9 +8,9 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	swagger "github.com/gofiber/swagger/v2"
 
-	"github.com/gef3dx/api_workinghub/internal/config"
-	"github.com/gef3dx/api_workinghub/internal/database/postgres"
-	"github.com/gef3dx/api_workinghub/internal/user"
+	"github.com/gef3dx/it_courses/internal/config"
+	"github.com/gef3dx/it_courses/internal/database/postgres"
+	"github.com/gef3dx/it_courses/internal/user"
 )
 
 // App объединяет HTTP-приложение и инфраструктурные зависимости, которые нужно закрыть при завершении.

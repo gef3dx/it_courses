@@ -10,9 +10,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	_ "github.com/gef3dx/api_workinghub/docs"
-	"github.com/gef3dx/api_workinghub/internal/bootstrap"
-	"github.com/gef3dx/api_workinghub/internal/config"
+	_ "github.com/gef3dx/it_courses/docs"
+	"github.com/gef3dx/it_courses/internal/bootstrap"
+	"github.com/gef3dx/it_courses/internal/config"
 )
 
 // @title API WorkingHub

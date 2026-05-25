@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"github.com/gef3dx/api_workinghub/internal/config"
+	"github.com/gef3dx/it_courses/internal/config"
 )
 
 // Storage хранит активное GORM-подключение к PostgreSQL.

@@ -1,11 +1,11 @@
 services:
   db:
     image: postgres:18
-    container_name: workinghub
+    container_name: it_courses
     environment:
-      POSTGRES_DB: wh
-      POSTGRES_USER: wh_user
-      POSTGRES_PASSWORD: wh_password
+      POSTGRES_DB: it_courses
+      POSTGRES_USER: it_user
+      POSTGRES_PASSWORD: it_password
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:

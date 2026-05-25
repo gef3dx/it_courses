@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gef3dx/api_workinghub/internal/user"
+	"github.com/gef3dx/it_courses/internal/user"
 )
 
 func TestService_Create_Success(t *testing.T) {
