@@ -1,6 +1,6 @@
 # it_courses — Образовательная платформа API
 
-**Стек:** Go 1.25, Fiber v3, GORM, PostgreSQL, go-playground/validator, cleanenv, JWT
+**Стек:** Go 1.25, Fiber v3, GORM, PostgreSQL, Redis, RabbitMQ, go-playground/validator, cleanenv, JWT, S3 (MinIO)
 
 **Модуль:** `github.com/gef3dx/it_courses`
 
@@ -9,7 +9,7 @@
 ## Запуск
 
 ```bash
-docker compose up -d db        # PostgreSQL
+docker compose up -d           # PostgreSQL + Redis + RabbitMQ + MinIO
 go run ./cmd/api               # API сервер (порт 3000)
 ```
 
@@ -41,6 +41,9 @@ go run ./cmd/api               # API сервер (порт 3000)
 | **Payment** | Платёж пользователя за курс: сумма, статус, метод оплаты |
 | **Page** | Статическая страница (CMS): title, slug, контент |
 | **Article** | Образовательная статья: rich content (изображения, видео), ссылки на тесты |
+| **Redis** | Кэш (сессии, курсы, тесты), rate limiting, очереди через RPush/BLPop |
+| **RabbitMQ** | Асинхронные задачи: отправка email, обработка медиа, уведомления |
+| **MinIO (S3)** | Хранение изображений и видео для статей/уроков |
 
 ---
 
@@ -211,6 +214,37 @@ go run ./cmd/api               # API сервер (порт 3000)
 - Admin может редактировать любой профиль
 - Пользователь может удалить свой аккаунт. Для self-delete требуется подтверждение: `{password}` в body
 - Admin может удалить любой аккаунт без подтверждения пароля
+
+## Инфраструктура
+
+### Redis
+- **Кэш**: курсы (список + детали), тесты, страницы — TTL 5–15 минут. Инвалидация при CRUD
+- **Сессии/Refresh токены**: хранение refresh token в Redis с TTL (вместо БД)
+- **Rate limiting**: Fiber middleware через Redis (ограничение запросов на пользователя/IP)
+- **Очередь отложенных задач**: через Redis списки (RPush/BLPop) для простых задач (как fallback если RabbitMQ недоступен)
+- Подключение через `github.com/redis/go-redis/v9`
+
+### RabbitMQ
+- **Отправка email** (подтверждение, восстановление пароля) — Consumer отправляет через EmailSender
+- **Обработка медиа** (ресайз, оптимизация изображений/видео)
+- **Уведомления** (об окончании курса, новых уроках)
+- Подключение через `github.com/rabbitmq/amqp091-go`
+- Повторная обработка при сбое (dead letter queue + retry)
+
+### MinIO (S3)
+- Хранение загружаемых изображений и видео для статей, уроков, аватаров
+- Доступ через S3-совместимый клиент (`github.com/minio/minio-go/v7`)
+- Публичные файлы — через presigned URL или прокси
+
+## docker-compose
+
+```yaml
+services:
+  db: postgres:18
+  redis: redis:7-alpine
+  rabbitmq: rabbitmq:4-management
+  minio: minio/minio
+```
 
 ## Оценка теста
 

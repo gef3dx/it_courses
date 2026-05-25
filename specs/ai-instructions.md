@@ -90,6 +90,22 @@
 
 ---
 
+### Redis
+- Кэш для списков и деталей (TTL 5-15 мин)
+- Инвалидация при CRUD
+- Rate limiting и refresh токены
+
+### RabbitMQ
+- Email, медиа, уведомления — через очереди
+- Consumer в фоновой горутине при старте
+- DLQ + retry при ошибках
+- Redis fallback если RabbitMQ недоступен
+
+### MinIO/S3
+- Файлы в S3, в БД только url
+- Загрузка через POST /upload
+- Presigned URL для доступа
+
 ### Горутины и утечки
 - Все блокирующие операции через `context.Context`
 - `defer` для закрытия ресурсов (rows, body, timer, ticker)

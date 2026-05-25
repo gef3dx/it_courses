@@ -11,6 +11,22 @@ Router (router.go)
 
 Каждый домен (user, auth, test, question, article, page, result, course, lesson) следует этой структуре.
 
+## Инфраструктурные сервисы
+
+```
+internal/
+  cache/              # Redis клиент + абстракции
+    redis.go          # go-redis client, NewCache(cfg)
+  queue/              # Очереди сообщений
+    rabbitmq.go       # AMQP подключение, publish/consume
+    redis_queue.go    # Fallback через Redis списки
+  storage/            # Файловое хранилище
+    s3.go             # MinIO/S3 клиент
+  mailer/             # Email-рассылка
+    sender.go         # Интерфейс EmailSender
+    consumer.go       # RabbitMQ consumer для отправки
+```
+
 ## Dependency Injection
 
 Ручное связывание в `bootstrap.NewApp()`:
@@ -255,6 +271,40 @@ internal/<domain>/
 - Администратор меняет статус на `completed` → автоматически создаётся CourseAccess
 - Статусы: `pending` → `completed` / `failed`; `completed` → `refunded`
 - Сумма платежа берётся из `courses.price` на момент создания
+
+## Кэширование (Redis)
+
+- **Паттерн Cache-Aside**: при чтении сначала Redis, при промахе — БД, затем запись в Redis
+- **TTL** по умолчанию:
+  - Список курсов: 5 мин
+  - Детали курса: 10 мин
+  - Список тестов: 5 мин
+  - Страницы/статьи: 15 мин
+- **Инвалидация** при CRUD операциях:
+  - При создании/обновлении/удалении курса — удалить `courses:list` и `courses:{slug}`
+  - При обновлении урока — удалить `courses:{slug}` (т.к. уроки вложены)
+- **Ключи**: `courses:list`, `courses:{slug}`, `tests:list`, `pages:{slug}`, `articles:{slug}`
+- Rate limiting ключи: `ratelimit:{userID}:{endpoint}`, `ratelimit:{ip}:{endpoint}`
+
+## Асинхронные задачи (RabbitMQ + Redis fallback)
+
+| Задача | Очередь | Consumer | Приоритет |
+|--------|---------|----------|-----------|
+| Отправка email | `email.send` | mailer.Consumer | высокий |
+| Обработка медиа | `media.process` | media.Consumer | средний |
+| Уведомления | `notification.send` | notify.Consumer | низкий |
+
+- **Producer** → публикует сообщение в RabbitMQ (JSON с task данными)
+- **Consumer** → запускается в фоновой горутине при старте приложения, слушает очередь
+- **Retry** → при ошибке сообщение в DLQ, через N секунд возвращается в основную очередь
+- **Redis fallback**: если RabbitMQ недоступен, RPush в Redis список, BLPop в consumer
+
+## Файловое хранилище (MinIO/S3)
+
+- Bucket: `it-courses-media`
+- Путь: `{entity_type}/{entity_id}/{uuid}.{ext}` (например `lessons/42/a1b2c3d4.jpg`)
+- Загрузка: multipart upload через API, сохранение ссылки в БД (articles/media, lessons/media)
+- Доступ: presigned URL с TTL 1 час для временного доступа, или прямой прокси
 
 ## Обработка ошибок
 
