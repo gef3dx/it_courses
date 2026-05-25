@@ -21,9 +21,9 @@ func getTestDB(t *testing.T) *gorm.DB {
 
 	host := getEnv("POSTGRES_HOST", "localhost")
 	port := getEnv("POSTGRES_PORT", "5432")
-	dbName := getEnv("POSTGRES_DB", "wh")
-	dbUser := getEnv("POSTGRES_USER", "wh_user")
-	password := getEnv("POSTGRES_PASSWORD", "wh_password")
+	dbName := getEnv("POSTGRES_DB", "it_courses")
+	dbUser := getEnv("POSTGRES_USER", "it_user")
+	password := getEnv("POSTGRES_PASSWORD", "it_password")
 	sslmode := getEnv("POSTGRES_SSLMODE", "disable")
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
