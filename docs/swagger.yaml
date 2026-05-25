@@ -98,8 +98,8 @@ definitions:
 host: localhost:3000
 info:
   contact: {}
-  description: Документация API сервиса WorkingHub.
-  title: API WorkingHub
+  description: Документация API сервиса it_courses.
+  title: API it_courses
   version: "1.0"
 paths:
   /:

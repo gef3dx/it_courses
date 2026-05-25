@@ -15,9 +15,9 @@ import (
 	"github.com/gef3dx/it_courses/internal/config"
 )
 
-// @title API WorkingHub
+// @title API it_courses
 // @version 1.0
-// @description Документация API сервиса WorkingHub.
+// @description Документация API сервиса it_courses.
 // @host localhost:3000
 // @BasePath /
 

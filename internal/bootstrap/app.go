@@ -71,7 +71,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 
 	app := fiber.New(fiber.Config{
 		// Базовые настройки Fiber для всего HTTP-приложения.
-		AppName: "api_workinghub",
+		AppName: "it_courses",
 	})
 
 	// CORS для Swagger UI и внешних клиентов.

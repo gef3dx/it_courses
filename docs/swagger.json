@@ -1,8 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Документация API сервиса WorkingHub.",
-        "title": "API WorkingHub",
+        "description": "Документация API сервиса it_courses.",
+        "title": "API it_courses",
         "contact": {},
         "version": "1.0"
     },
